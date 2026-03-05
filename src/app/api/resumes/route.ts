@@ -4,18 +4,10 @@ import { createClient } from '@/lib/supabase/server'
 export async function GET() {
     const supabase = await createClient()
 
-    // Get current session user
-    const { data: { user } } = await supabase.auth.getUser()
-
-    if (!user) {
-        return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-    }
-
-    // Fetch resumes for the user
+    // Fetch all resumes (no auth required)
     const { data, error } = await supabase
         .from('resumes')
         .select('*')
-        .eq('user_id', user.id)
         .order('created_at', { ascending: false })
 
     if (error) {
@@ -29,13 +21,6 @@ export async function GET() {
 export async function POST(req: Request) {
     const supabase = await createClient()
 
-    // Get current session user
-    const { data: { user } } = await supabase.auth.getUser()
-
-    if (!user) {
-        return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-    }
-
     try {
         const body = await req.json()
         const { title, content } = body
@@ -47,7 +32,6 @@ export async function POST(req: Request) {
         const { data, error } = await supabase
             .from('resumes')
             .insert({
-                user_id: user.id,
                 title,
                 content,
             })

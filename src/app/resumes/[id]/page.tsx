@@ -4,27 +4,16 @@ import ResumePreview from '@/components/ResumePreview';
 import Navbar from '@/components/Navbar';
 import { Button } from '@/components/ui/Button';
 import Link from 'next/link';
-import { Download, Edit, ArrowLeft } from 'lucide-react';
+import { Edit, ArrowLeft } from 'lucide-react';
 
 export default async function SavedResumeView(props: { params: Promise<{ id: string }> }) {
     const params = await props.params;
     const supabase = await createClient();
 
-    const { data: { user } } = await supabase.auth.getUser();
-
-    if (!user) {
-        return (
-            <div className="min-h-screen flex items-center justify-center bg-black text-white">
-                <p>Please log in to view this resume.</p>
-            </div>
-        );
-    }
-
     const { data: resume, error } = await supabase
         .from('resumes')
         .select('*')
         .eq('id', params.id)
-        .eq('user_id', user.id)
         .single();
 
     if (error || !resume) {
@@ -61,7 +50,6 @@ export default async function SavedResumeView(props: { params: Promise<{ id: str
                 </div>
             </main>
 
-            {/* Print only styles to ensure UI doesn't print */}
             <style dangerouslySetInnerHTML={{
                 __html: `
         @media print {

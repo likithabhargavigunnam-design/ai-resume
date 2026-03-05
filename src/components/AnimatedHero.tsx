@@ -48,7 +48,7 @@ export default function AnimatedHero() {
                     transition={{ duration: 0.5, delay: 0.3 }}
                     className="flex flex-col sm:flex-row gap-4 w-full sm:w-auto"
                 >
-                    <Link href="/login" className="w-full sm:w-auto">
+                    <Link href="/builder" className="w-full sm:w-auto">
                         <Button size="lg" className="w-full sm:w-auto group">
                             Build Your Resume
                             <ArrowRight className="ml-2 w-4 h-4 group-hover:translate-x-1 transition-transform" />

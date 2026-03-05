@@ -5,7 +5,7 @@ import Navbar from '@/components/Navbar';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import ResumePreview from '@/components/ResumePreview';
-import { Wand2, Download, Save, Loader2, Sparkles } from 'lucide-react';
+import { Wand2, Download, Save, Loader2, Sparkles, FileText } from 'lucide-react';
 
 export default function BuilderPage() {
     const [isGenerating, setIsGenerating] = useState(false);
