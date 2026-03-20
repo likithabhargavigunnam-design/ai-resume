@@ -14,13 +14,13 @@ CREATE TABLE public.resumes (
 ALTER TABLE public.resumes ENABLE ROW LEVEL SECURITY;
 
 -- Create Policies to secure the table
--- Users can only view their own resumes
-CREATE POLICY "Users can view own resumes." ON public.resumes
-    FOR SELECT USING (auth.uid() = user_id);
+-- Users can view all resumes (no login required)
+CREATE POLICY "Anyone can view resumes" ON public.resumes
+    FOR SELECT USING (true);
 
--- Users can only insert their own resumes
-CREATE POLICY "Users can insert own resumes." ON public.resumes
-    FOR INSERT WITH CHECK (auth.uid() = user_id);
+-- Users can insert resumes without being logged in
+CREATE POLICY "Anyone can insert resumes" ON public.resumes
+    FOR INSERT WITH CHECK (true);
 
 -- Users can only update their own resumes
 CREATE POLICY "Users can update own resumes." ON public.resumes
