@@ -1,8 +1,13 @@
 import Link from 'next/link';
 import { Button } from './ui/Button';
-import { Sparkles } from 'lucide-react';
+import { Sparkles, LayoutDashboard, LogIn, LogOut } from 'lucide-react';
+import { createClient } from '@/lib/supabase/server';
+import { logout } from '@/app/login/actions';
 
-export default function Navbar() {
+export default async function Navbar() {
+    const supabase = await createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+
     return (
         <nav className="sticky top-0 z-50 w-full border-b border-white/5 bg-black/50 backdrop-blur-xl">
             <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
@@ -14,12 +19,32 @@ export default function Navbar() {
                         inten<span className="text-zinc-500">.pro</span>
                     </span>
                 </Link>
-                <div className="flex items-center gap-4">
-                    <Link href="/dashboard">
-                        <Button variant="ghost" size="sm">Dashboard</Button>
-                    </Link>
+                <div className="flex items-center gap-2 sm:gap-4">
+                    {user ? (
+                        <>
+                            <Link href="/dashboard">
+                                <Button variant="ghost" size="sm" className="hidden sm:flex">
+                                    <LayoutDashboard className="w-4 h-4 mr-2" />
+                                    Dashboard
+                                </Button>
+                            </Link>
+                            <form action={logout}>
+                                <Button variant="ghost" size="sm" type="submit" className="text-zinc-400 hover:text-white">
+                                    <LogOut className="w-4 h-4 mr-2" />
+                                    Sign Out
+                                </Button>
+                            </form>
+                        </>
+                    ) : (
+                        <Link href="/login">
+                            <Button variant="ghost" size="sm">
+                                <LogIn className="w-4 h-4 mr-2" />
+                                Sign In
+                            </Button>
+                        </Link>
+                    )}
                     <Link href="/builder">
-                        <Button size="sm">Build Resume</Button>
+                        <Button size="sm" className="bg-white text-black hover:bg-zinc-200 font-bold">Build Resume</Button>
                     </Link>
                 </div>
             </div>
