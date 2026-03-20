@@ -1,12 +1,30 @@
+'use client';
+
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { Button } from './ui/Button';
 import { Sparkles, LayoutDashboard, LogIn, LogOut } from 'lucide-react';
-import { createClient } from '@/lib/supabase/server';
+import { createClient } from '@/lib/supabase/client';
 import { logout } from '@/app/login/actions';
+import { User } from '@supabase/supabase-js';
 
-export default async function Navbar() {
-    const supabase = await createClient();
-    const { data: { user } } = await supabase.auth.getUser();
+export default function Navbar() {
+    const [user, setUser] = useState<User | null>(null);
+    const supabase = createClient();
+
+    useEffect(() => {
+        const getUser = async () => {
+            const { data: { user } } = await supabase.auth.getUser();
+            setUser(user);
+        };
+        getUser();
+
+        const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+            setUser(session?.user ?? null);
+        });
+
+        return () => subscription.unsubscribe();
+    }, [supabase]);
 
     return (
         <nav className="sticky top-0 z-50 w-full border-b border-white/5 bg-black/50 backdrop-blur-xl">

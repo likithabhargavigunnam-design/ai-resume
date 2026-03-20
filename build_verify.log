@@ -1,0 +1,36 @@
+﻿
+> inten.pro@0.1.0 build
+> next build
+
+Γû▓ Next.js 16.1.6 (Turbopack)
+- Environments: .env.local
+
+  Creating an optimized production build ...
+Γ£ô Compiled successfully in 2.8s
+  Running TypeScript ...
+  Collecting page data using 11 workers ...
+  Generating static pages using 11 workers (0/10) ...
+  Generating static pages using 11 workers (2/10) 
+  Generating static pages using 11 workers (4/10) 
+  Generating static pages using 11 workers (7/10) 
+Γ£ô Generating static pages using 11 workers (10/10) in 297.5ms
+  Finalizing page optimization ...
+
+Route (app)
+Γöî Γùï /
+Γö£ Γùï /_not-found
+Γö£ ╞Æ /api/generate
+Γö£ ╞Æ /api/resumes
+Γö£ ╞Æ /api/resumes/[id]
+Γö£ ╞Æ /auth/callback
+Γö£ Γùï /builder
+Γö£ Γùï /dashboard
+Γö£ ╞Æ /login
+Γöö ╞Æ /resumes/[id]
+
+
+╞Æ Proxy (Middleware)
+
+Γùï  (Static)   prerendered as static content
+╞Æ  (Dynamic)  server-rendered on demand
+
