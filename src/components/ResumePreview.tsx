@@ -1,6 +1,19 @@
 import React from 'react';
+import { ClassicTemplate } from './templates/ClassicTemplate';
+import { ModernTemplate } from './templates/ModernTemplate';
+import { MinimalTemplate } from './templates/MinimalTemplate';
+import { SidebarTemplate } from './templates/SidebarTemplate';
+import { ExecutiveTemplate } from './templates/ExecutiveTemplate';
+import { TechTemplate } from './templates/TechTemplate';
+import { ElegantTemplate } from './templates/ElegantTemplate';
+import { CompactTemplate } from './templates/CompactTemplate';
+import { FuturisticTemplate } from './templates/FuturisticTemplate';
+import { GlassmorphismTemplate } from './templates/GlassmorphismTemplate';
+import { EditorialTemplate } from './templates/EditorialTemplate';
+import { CorporateTemplate } from './templates/CorporateTemplate';
+import { VibrantTemplate } from './templates/VibrantTemplate';
 
-type ResumeData = {
+export type ResumeData = {
     personalInfo: {
         fullName: string;
         email: string;
@@ -25,104 +38,100 @@ type ResumeData = {
     skills: string[];
 };
 
-export default function ResumePreview({ data }: { data: ResumeData }) {
-    if (!data) return null;
+export const TEMPLATES = [
+    { id: 'classic', name: 'Classic Professional' },
+    { id: 'modern', name: 'Modern Clean' },
+    { id: 'minimal', name: 'Minimalist' },
+    { id: 'sidebar-left', name: 'Creative Sidebar (Left)' },
+    { id: 'sidebar-right', name: 'Royal Sidebar (Right)' },
+    { id: 'executive', name: 'Executive' },
+    { id: 'tech', name: 'Tech Startup' },
+    { id: 'elegant', name: 'Elegant Serif' },
+    { id: 'compact', name: 'Compact' },
+    { id: 'futuristic', name: 'Futuristic' },
+    { id: 'glass', name: 'Glassmorphism' },
+    { id: 'editorial', name: 'Editorial' },
+    { id: 'corporate', name: 'Corporate Blue' },
+    { id: 'vibrant', name: 'Vibrant Gradient' },
+] as const;
+
+export type TemplateId = typeof TEMPLATES[number]['id'];
+
+export const MOCK_DATA: ResumeData = {
+    personalInfo: {
+        fullName: 'Alexander Sterling',
+        email: 'alex.sterling@example.com',
+        phone: '+1 (555) 012-3456',
+        location: 'San Francisco, CA',
+        linkedin: 'linkedin.com/in/alexsterling',
+        portfolio: 'alexsterling.dev'
+    },
+    summary: 'Senior Software Architect with over 10 years of experience in building scalable distributed systems and cloud-native applications. Proven track record of leading cross-functional teams and delivering high-impact technical solutions.',
+    experience: [
+        {
+            company: 'TechFlow Systems',
+            role: 'Lead Software Architect',
+            startDate: 'Jan 2020',
+            endDate: 'Present',
+            achievements: [
+                'Spearheaded the migration of monolithic architecture to microservices, reducing deployment time by 60%.',
+                'Optimized database queries and caching layers, leading to a 40% improvement in system latency.',
+                'Mentored a team of 15 engineers and established best practices for CI/CD and automated testing.'
+            ]
+        },
+        {
+            company: 'InnovaTech Solutions',
+            role: 'Senior Full Stack Developer',
+            startDate: 'Mar 2015',
+            endDate: 'Dec 2019',
+            achievements: [
+                'Developed and launched a customer-facing portal that increased user engagement by 25%.',
+                'Integrated multiple third-party APIs for real-time data processing and analytics.',
+                'Collaborated with UX designers to implement responsive and intuitive user interfaces.'
+            ]
+        }
+    ],
+    education: [
+        {
+            institution: 'Massachusetts Institute of Technology (MIT)',
+            degree: 'Master of Science in Computer Science',
+            graduationDate: 'May 2015'
+        },
+        {
+            institution: 'Stanford University',
+            degree: 'Bachelor of Science in Software Engineering',
+            graduationDate: 'May 2013'
+        }
+    ],
+    skills: ['System Architecture', 'Node.js', 'React/Next.js', 'PostgreSQL', 'AWS/GCP', 'Kubernetes', 'Python', 'Go', 'Distributed Systems', 'Agile Methodology']
+};
+
+export default function ResumePreview({ data, templateId = 'classic' }: { data: ResumeData | null; templateId?: TemplateId }) {
+    const activeData = data || MOCK_DATA;
+
+    const renderTemplate = () => {
+        switch (templateId) {
+            case 'modern': return <ModernTemplate data={activeData} />;
+            case 'minimal': return <MinimalTemplate data={activeData} />;
+            case 'sidebar-left': return <SidebarTemplate data={activeData} sidebar="left" />;
+            case 'sidebar-right': return <SidebarTemplate data={activeData} sidebar="right" />;
+            case 'executive': return <ExecutiveTemplate data={activeData} />;
+            case 'tech': return <TechTemplate data={activeData} />;
+            case 'elegant': return <ElegantTemplate data={activeData} />;
+            case 'compact': return <CompactTemplate data={activeData} />;
+            case 'futuristic': return <FuturisticTemplate data={activeData} />;
+            case 'glass': return <GlassmorphismTemplate data={activeData} />;
+            case 'editorial': return <EditorialTemplate data={activeData} />;
+            case 'corporate': return <CorporateTemplate data={activeData} />;
+            case 'vibrant': return <VibrantTemplate data={activeData} />;
+            case 'classic':
+            default: return <ClassicTemplate data={activeData} />;
+        }
+    };
 
     return (
-        <div id="resume-preview" className="bg-white text-black p-8 sm:p-12 w-full max-w-[210mm] mx-auto min-h-[297mm] shadow-2xl relative">
-            <div className="text-center border-b-2 border-zinc-300 pb-6 mb-6">
-                <h1 className="text-4xl font-serif font-bold tracking-tight text-zinc-900 mb-2">
-                    {data.personalInfo?.fullName || 'John Doe'}
-                </h1>
-                <div className="flex flex-wrap items-center justify-center gap-2 sm:gap-4 text-sm text-zinc-600">
-                    {data.personalInfo?.email && <span>{data.personalInfo.email}</span>}
-                    {data.personalInfo?.phone && (
-                        <>
-                            <span className="text-zinc-300">•</span>
-                            <span>{data.personalInfo.phone}</span>
-                        </>
-                    )}
-                    {data.personalInfo?.location && (
-                        <>
-                            <span className="text-zinc-300">•</span>
-                            <span>{data.personalInfo.location}</span>
-                        </>
-                    )}
-                </div>
-                <div className="flex flex-wrap items-center justify-center gap-2 sm:gap-4 text-sm text-blue-600 mt-1">
-                    {data.personalInfo?.linkedin && <a href={data.personalInfo.linkedin}>{data.personalInfo.linkedin}</a>}
-                    {data.personalInfo?.portfolio && (
-                        <>
-                            <span className="text-zinc-300">•</span>
-                            <a href={data.personalInfo.portfolio}>{data.personalInfo.portfolio}</a>
-                        </>
-                    )}
-                </div>
-            </div>
-
-            {data.summary && (
-                <div className="mb-6">
-                    <p className="text-[15px] leading-relaxed text-zinc-800">{data.summary}</p>
-                </div>
-            )}
-
-            {data.experience && data.experience.length > 0 && (
-                <div className="mb-6">
-                    <h2 className="text-lg font-bold uppercase tracking-widest border-b border-zinc-200 pb-1 mb-4 text-zinc-900">
-                        Professional Experience
-                    </h2>
-                    <div className="space-y-5">
-                        {data.experience.map((exp, i) => (
-                            <div key={i}>
-                                <div className="flex justify-between items-baseline mb-1">
-                                    <h3 className="font-semibold text-zinc-900">{exp.role}</h3>
-                                    <span className="text-sm font-medium text-zinc-600">
-                                        {exp.startDate} – {exp.endDate}
-                                    </span>
-                                </div>
-                                <div className="text-[15px] font-medium text-zinc-700 italic mb-2">
-                                    {exp.company}
-                                </div>
-                                <ul className="list-disc list-outside ml-4 space-y-1 text-[14px] text-zinc-800">
-                                    {exp.achievements?.map((ach, j) => (
-                                        <li key={j} className="pl-1 leading-relaxed">{ach}</li>
-                                    ))}
-                                </ul>
-                            </div>
-                        ))}
-                    </div>
-                </div>
-            )}
-
-            {data.education && data.education.length > 0 && (
-                <div className="mb-6">
-                    <h2 className="text-lg font-bold uppercase tracking-widest border-b border-zinc-200 pb-1 mb-4 text-zinc-900">
-                        Education
-                    </h2>
-                    <div className="space-y-4">
-                        {data.education.map((edu, i) => (
-                            <div key={i} className="flex justify-between items-baseline">
-                                <div>
-                                    <h3 className="font-semibold text-zinc-900">{edu.degree}</h3>
-                                    <div className="text-[15px] text-zinc-700">{edu.institution}</div>
-                                </div>
-                                <span className="text-sm font-medium text-zinc-600">{edu.graduationDate}</span>
-                            </div>
-                        ))}
-                    </div>
-                </div>
-            )}
-
-            {data.skills && data.skills.length > 0 && (
-                <div>
-                    <h2 className="text-lg font-bold uppercase tracking-widest border-b border-zinc-200 pb-1 mb-3 text-zinc-900">
-                        Skills
-                    </h2>
-                    <div className="flex flex-wrap gap-2 text-[14px] text-zinc-800">
-                        {data.skills.join(' • ')}
-                    </div>
-                </div>
-            )}
+        <div id="resume-preview" className="w-full max-w-[210mm] mx-auto min-h-[297mm] shadow-2xl relative bg-white text-black overflow-hidden print:shadow-none">
+            {renderTemplate()}
         </div>
     );
 }

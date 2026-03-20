@@ -4,13 +4,14 @@ import { useState } from 'react';
 import Navbar from '@/components/Navbar';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
-import ResumePreview from '@/components/ResumePreview';
-import { Wand2, Download, Save, Loader2, Sparkles, FileText } from 'lucide-react';
+import ResumePreview, { TEMPLATES, TemplateId, MOCK_DATA } from '@/components/ResumePreview';
+import { Wand2, Download, Save, Loader2, Sparkles, FileText, ChevronRight } from 'lucide-react';
 
 export default function BuilderPage() {
     const [isGenerating, setIsGenerating] = useState(false);
     const [isSaving, setIsSaving] = useState(false);
-    const [resumeData, setResumeData] = useState<any>(null);
+    const [resumeData, setResumeData] = useState<any>(MOCK_DATA);
+    const [selectedTemplate, setSelectedTemplate] = useState<TemplateId>('classic');
 
     const [formData, setFormData] = useState({
         personalInfo: {
@@ -20,6 +21,22 @@ export default function BuilderPage() {
         education: [{ institution: '', degree: '', graduationDate: '' }],
         skills: ''
     });
+
+    const loadSampleData = () => {
+        setFormData({
+            personalInfo: MOCK_DATA.personalInfo,
+            experience: MOCK_DATA.experience.map(exp => ({
+                company: exp.company,
+                role: exp.role,
+                startDate: exp.startDate,
+                endDate: exp.endDate,
+                description: exp.achievements.join(', ')
+            })),
+            education: MOCK_DATA.education,
+            skills: MOCK_DATA.skills.join(', ')
+        });
+        setResumeData(MOCK_DATA);
+    };
 
     const handleGenerate = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -43,14 +60,18 @@ export default function BuilderPage() {
                 })
             });
 
-            if (!res.ok) throw new Error('Failed to generate resume');
+            if (!res.ok) {
+                const errorData = await res.json().catch(() => ({}));
+                console.error('Server error details:', errorData);
+                throw new Error(errorData.error || errorData.details || 'Failed to generate resume');
+            }
 
             const data = await res.json();
             setResumeData(data);
 
-        } catch (error) {
-            console.error(error);
-            alert('Error generating resume. Check console.');
+        } catch (error: any) {
+            console.error('Generation failure:', error);
+            alert(error.message || 'Error generating resume. Check console.');
         } finally {
             setIsGenerating(false);
         }
@@ -65,7 +86,8 @@ export default function BuilderPage() {
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     title: `${resumeData.personalInfo.fullName}'s Resume`,
-                    content: resumeData
+                    content: resumeData,
+                    templateId: selectedTemplate
                 })
             });
             if (!res.ok) throw new Error('Failed to save');
@@ -89,9 +111,15 @@ export default function BuilderPage() {
             <main className="flex-1 max-w-[1600px] w-full mx-auto px-4 sm:px-6 py-8 grid grid-cols-1 lg:grid-cols-2 gap-8 h-full">
                 {/* Left Column: Form */}
                 <div className="space-y-8 lg:pr-8 lg:border-r lg:border-white/10 lg:h-[calc(100vh-8rem)] lg:overflow-y-auto no-scrollbar">
-                    <div>
-                        <h1 className="text-3xl font-bold tracking-tight mb-2">Resume Details</h1>
-                        <p className="text-zinc-400">Enter your raw details, and let our AI craft the perfect phrasing.</p>
+                    <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
+                        <div>
+                            <h1 className="text-3xl font-bold tracking-tight mb-2 italic">Resume Details</h1>
+                            <p className="text-zinc-400">Enter your raw details, and let our AI craft the perfect phrasing.</p>
+                        </div>
+                        <Button type="button" variant="outline" size="sm" onClick={loadSampleData} className="border-blue-500/30 text-blue-400 hover:bg-blue-500/10">
+                            <Sparkles className="w-4 h-4 mr-2" />
+                            Load Sample Data
+                        </Button>
                     </div>
 
                     <form onSubmit={handleGenerate} className="space-y-8 glass p-6 sm:p-8 rounded-3xl">
@@ -193,33 +221,62 @@ export default function BuilderPage() {
                 </div>
 
                 {/* Right Column: Preview */}
-                <div className="lg:h-[calc(100vh-8rem)] lg:overflow-y-auto no-scrollbar rounded-3xl bg-zinc-900/50 border border-white/10 p-4 lg:p-8 flex flex-col print:hidden shadow-inner">
-                    <div className="flex justify-between items-center mb-6 sticky top-0 bg-transparent py-2 backdrop-blur-md z-10 w-full rounded-lg">
-                        <h2 className="text-xl font-bold">Resume Preview</h2>
-                        <div className="flex gap-2 relative z-20">
-                            <Button variant="outline" size="sm" onClick={handleSave} disabled={!resumeData || isSaving}>
-                                {isSaving ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Save className="w-4 h-4 mr-2" />}
-                                Save
-                            </Button>
-                            <Button size="sm" onClick={downloadPDF} disabled={!resumeData}>
-                                <Download className="w-4 h-4 mr-2" />
-                                Export PDF
-                            </Button>
+                <div className="lg:h-[calc(100vh-8rem)] lg:overflow-y-auto no-scrollbar rounded-3xl bg-zinc-900/50 border border-white/10 flex flex-col print:hidden shadow-inner">
+                    <div className="sticky top-0 bg-black/80 backdrop-blur-md z-20 w-full p-4 lg:p-6 border-b border-white/10 space-y-4">
+                        <div className="flex justify-between items-center">
+                            <h2 className="text-xl font-bold">Preview & Customize</h2>
+                            <div className="flex gap-2 relative z-20">
+                                <Button variant="outline" size="sm" onClick={handleSave} disabled={!resumeData || isSaving}>
+                                    {isSaving ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Save className="w-4 h-4 mr-2" />}
+                                    Save
+                                </Button>
+                                <Button size="sm" onClick={downloadPDF} disabled={!resumeData}>
+                                    <Download className="w-4 h-4 mr-2" />
+                                    Export PDF
+                                </Button>
+                            </div>
+                        </div>
+
+                        {/* Template Selector */}
+                        <div className="space-y-2">
+                            <div className="flex items-center justify-between">
+                                <span className="text-[10px] uppercase tracking-[0.2em] font-black text-zinc-500 italic">Select Art Style</span>
+                                <span className="text-[10px] text-zinc-600">{TEMPLATES.length} Styles Available</span>
+                            </div>
+                            <div className="flex gap-2 overflow-x-auto pb-2 no-scrollbar">
+                                {TEMPLATES.map((tpl) => (
+                                    <button
+                                        key={tpl.id}
+                                        onClick={() => setSelectedTemplate(tpl.id)}
+                                        className={`px-6 py-2.5 rounded-xl text-xs font-bold whitespace-nowrap transition-all border ${selectedTemplate === tpl.id
+                                            ? 'bg-white text-black border-white shadow-[0_0_20px_rgba(255,255,255,0.3)] scale-105'
+                                            : 'bg-white/5 text-zinc-500 border-white/5 hover:border-white/20 hover:text-zinc-300'
+                                            }`}
+                                    >
+                                        {tpl.name}
+                                    </button>
+                                ))}
+                            </div>
                         </div>
                     </div>
 
-                    <div className="flex-1 flex justify-center w-full">
+                    <div className="flex-1 flex justify-center w-full p-4 lg:p-8">
                         {resumeData ? (
-                            <div className="scale-[0.85] sm:scale-100 origin-top w-full flex justify-center">
+                            <div className="scale-[0.8] sm:scale-100 origin-top w-full flex justify-center">
                                 {/* The actual resume preview logic that is styled for print */}
                                 <div className="print:block print:w-full print:absolute print:inset-0 print:m-0 print:p-0">
-                                    <ResumePreview data={resumeData} />
+                                    <ResumePreview data={resumeData} templateId={selectedTemplate} />
                                 </div>
                             </div>
                         ) : (
-                            <div className="flex flex-col items-center justify-center h-full text-zinc-500 w-full max-w-sm text-center">
+                            <div className="flex flex-col items-center justify-center h-full text-zinc-500 w-full max-w-sm text-center py-20">
                                 <FileText className="w-16 h-16 mb-4 opacity-20" />
+                                <h3 className="text-lg font-bold text-white mb-2">Ready to see your resume?</h3>
                                 <p>Fill out the details on the left and click "Generate with AI" to see your professional resume preview here.</p>
+                                <div className="mt-8 p-4 bg-white/5 rounded-2xl border border-white/5 text-xs text-left">
+                                    <p className="font-bold text-blue-400 mb-1 flex items-center gap-1"><Sparkles className="w-3 h-3" /> Pro Tip</p>
+                                    <p>Our AI analyzes your experience to highlight your achievements using industry-standard action verbs.</p>
+                                </div>
                             </div>
                         )}
                     </div>

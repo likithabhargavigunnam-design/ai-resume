@@ -1,12 +1,20 @@
 import { NextResponse } from 'next/server'
 
-const OPENROUTER_API_KEY = process.env.OPENROUTER_API_KEY
-const OPENROUTER_API_URL = 'https://openrouter.ai/api/v1/chat/completions'
+const GROQ_API_URL = 'https://api.groq.com/openai/v1/chat/completions'
 
 export async function POST(req: Request) {
+  const GROQ_API_KEY = process.env.GROQ_API_KEY
+
   try {
     const body = await req.json()
     const { personalInfo, experience, education, skills } = body
+
+    console.log('Generating resume for:', personalInfo?.fullName)
+
+    if (!GROQ_API_KEY) {
+      console.error('GROQ_API_KEY is missing from environment variables')
+      return NextResponse.json({ error: 'Server configuration error: Missing API Key' }, { status: 500 })
+    }
 
     if (!personalInfo) {
       return NextResponse.json({ error: 'Personal info is required' }, { status: 400 })
@@ -54,16 +62,15 @@ export async function POST(req: Request) {
       }
     `
 
-    const response = await fetch(OPENROUTER_API_URL, {
+    console.log('Sending request to Groq...')
+    const response = await fetch(GROQ_API_URL, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${OPENROUTER_API_KEY}`,
-        'HTTP-Referer': 'https://inten.pro',
-        'X-Title': 'inten.pro AI Resume Builder',
+        'Authorization': `Bearer ${GROQ_API_KEY}`,
       },
       body: JSON.stringify({
-        model: 'meta-llama/llama-3.1-8b-instruct:free',
+        model: 'llama-3.3-70b-versatile',
         messages: [
           {
             role: 'system',
@@ -72,28 +79,41 @@ export async function POST(req: Request) {
           { role: 'user', content: prompt }
         ],
         temperature: 0.5,
+        response_format: { type: 'json_object' }
       })
     })
 
     if (!response.ok) {
       const err = await response.text()
-      console.error('OpenRouter error:', err)
-      throw new Error(`OpenRouter API error: ${response.status}`)
+      console.error('Groq API error:', response.status, err)
+      return NextResponse.json({ error: `AI Generation Error: ${response.status} - ${err.substring(0, 100)}` }, { status: response.status })
     }
 
     const result = await response.json()
+    console.log('Received response from Groq')
     const content = result.choices[0]?.message?.content
 
-    if (!content) throw new Error('No response from AI')
+    if (!content) {
+      console.error('No content in Groq response:', JSON.stringify(result))
+      throw new Error('No response from AI')
+    }
 
-    // Strip any markdown code fences if model returns them
-    const cleaned = content.replace(/^```json?\s*|```$/gm, '').trim()
-    const parsed = JSON.parse(cleaned)
+    let parsed;
+    try {
+      parsed = JSON.parse(content)
+      console.log('Successfully parsed AI response')
+    } catch (e) {
+      console.error('Failed to parse AI response content:', content)
+      return NextResponse.json({ error: 'AI returned invalid JSON format' }, { status: 500 })
+    }
 
     return NextResponse.json(parsed)
 
   } catch (error: any) {
-    console.error('Error generating resume:', error)
-    return NextResponse.json({ error: error.message || 'Failed to generate resume' }, { status: 500 })
+    console.error('CRITICAL ERROR in /api/generate:', error)
+    return NextResponse.json({ 
+      error: error.message || 'Failed to generate resume',
+      details: error.stack?.substring(0, 200)
+    }, { status: 500 })
   }
 }
